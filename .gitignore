@@ -1,5 +1,8 @@
-data
-model
-__pycache__
-.venv
+__pycache__/
+.venv/
+
 .env
+
+data/
+model/
+!model/Modelfile
