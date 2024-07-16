@@ -1,13 +1,15 @@
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
+import pandas as pd
+from pymongo import MongoClient
 current_dir = Path(__file__).parent
-project_dir = Path(current_dir, "..")
-file_path = Path(project_dir, "data", "jeniffer1-2.pdf")
+project_dir = current_dir.parent
+file_path = Path(project_dir, "data", "jeniffer.csv")
 print(file_path)
 
-loader = PyPDFLoader(file_path)
-docs = loader.load()
+df = pd.read_csv(file_path)
 
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-splits = text_splitter.split_documents(docs)
+client = MongoClient('mongodb://localhost:27017/')
+db = client['jeniffer']
+collection = db['raw']
+
+collection.insert_many(df.to_dict('records'))
