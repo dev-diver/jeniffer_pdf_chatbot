@@ -6,5 +6,6 @@ __pycache__/
 data/
 model/
 !model/Modelfile
+chroma/
 
 .DS_store
