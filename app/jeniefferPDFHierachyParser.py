@@ -54,17 +54,36 @@ def add_sector(root, current_degree, target_degree, sector_orders, text):
     if current_degree == target_degree:
         # print(text)
         if sector_key not in root:
-            root[sector_key] = {"text": text, "children": {}}
+            root[sector_key] = {"text": text}
         else:
             root[sector_key]["text"] = text
     else:
+        current_degree_key = sector_orders[current_degree]
         if sector_key not in root:
-            root[sector_key] = {"children": {}}
-        add_sector(root[sector_key]["children"], current_degree+1, target_degree, sector_orders, text)
+            root[sector_key] = {}
+        if current_degree_key not in root[sector_key]:
+            root[sector_key][current_degree_key] = {}
+        add_sector(root[sector_key][current_degree_key], current_degree+1, target_degree, sector_orders, text)
 
 make_hiearachy()
-pretty_json = json.dumps(root, indent=2, ensure_ascii=False)
-print(pretty_json)
 
-with open(output_path, "w", encoding='utf-8') as file:
-    file.write(pretty_json)
+def get_degree_text(root, current_degree, target_degree, texts):
+    print(current_degree, root.keys())
+    if current_degree == target_degree:
+        if("text" in root):
+            texts.append(root["text"])
+            return
+    if(current_degree > target_degree):
+        return
+    for key in root:
+        if(key != "text"):
+            get_degree_text(root[key], current_degree+1, target_degree, texts)
+            
+texts = []
+get_degree_text(root, 0, 5, texts)
+print(texts)
+# pretty_json = json.dumps(root, indent=2, ensure_ascii=False)
+# print(pretty_json)
+
+# with open(output_path, "w", encoding='utf-8') as file:
+#     file.write(pretty_json)
