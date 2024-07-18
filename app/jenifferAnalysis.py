@@ -15,19 +15,19 @@ files = {}
 for page_num, page in enumerate(document):
     text_page = page.get_text("dict")
     text_blocks = []
-    for block in text_page["blocks"]:
+    for block_num, block in enumerate(text_page["blocks"]):
         if block["type"] == 0:
             for line_num, line in enumerate(block["lines"]):
                 for span in line["spans"]:
-                    obj_key = f'{span["size"]}-{span["font"]}'
+                    obj_key = f'{round(span["size"])}'
                     if obj_key not in files:
                         files[obj_key] = {}
                     if page_num not in files[obj_key]:
                         files[obj_key][page_num] = {}
-                    if line_num not in files[obj_key][page_num]:
-                        files[obj_key][page_num][line_num] = []
+                    if block_num not in files[obj_key][page_num]:
+                        files[obj_key][page_num][block_num] = []
                     if(span["text"].strip() != ''):
-                        files[obj_key][page_num][line_num].append(span["text"])
+                        files[obj_key][page_num][block_num].append(span["text"])
 
 line_counter = defaultdict(int)
 for key, file_contents in files.items():
@@ -36,12 +36,14 @@ for key, file_contents in files.items():
         for page_num, page_contents in file_contents.items():
             file.write(f"\n-- {page_num+1} p --")
             for line_num, line in page_contents.items():
-                file.write(f"\n{line_num+1} l:")
+                file.write(f"\n{line_num+1} :")
                 line_counter[key] += 1
                 for text in line:
                     file.write(text)
                     file.write(' ')
 
 line_count = sorted(line_counter.items(), key=lambda x: x[1], reverse=True)
+print("--sizes--")
 print(*map(lambda x: x[0], line_count), sep='\n')
+print("--blocks--")
 print(*map(lambda x: x[1], line_count), sep='\n')
