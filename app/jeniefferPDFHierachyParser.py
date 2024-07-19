@@ -6,7 +6,7 @@ current_dir = Path(__file__).parent
 project_dir = current_dir.parent
 data_dir = Path(project_dir, "data")
 file_path = Path(data_dir, "jeniffer1-2.pdf")
-output_path = Path(data_dir, "output.json")
+output_path = Path(data_dir, "paragrah.txt")
 
 document = fitz.open(file_path)
 
@@ -40,50 +40,47 @@ def make_hiearachy():
                         size = round(span["size"])
                         if(size not in texts):
                             texts[size] = []
-                        if(text.strip() != ''):
-                            texts[size].append(text)
-                    texts = dict(sorted(texts.items(), key=lambda x: x[0], reverse=True))
+                        texts[size].append(text)
+                texts = dict(sorted(texts.items(), key=lambda x: x[0], reverse=True))
                 for size, text in texts.items():
                     sector_degree = font_size_degree[size]
                     sector_orders[sector_degree] += 1
-                    join_text = ' '.join(text)
+                    join_text = ''.join(text)
                     add_sector(root, 0, sector_degree, sector_orders, join_text)
 
 def add_sector(root, current_degree, target_degree, sector_orders, text):
     sector_key = sector_orders[current_degree]
     if current_degree == target_degree:
-        # print(text)
         if sector_key not in root:
             root[sector_key] = {"text": text}
         else:
             root[sector_key]["text"] = text
     else:
-        current_degree_key = sector_orders[current_degree]
         if sector_key not in root:
             root[sector_key] = {}
-        if current_degree_key not in root[sector_key]:
-            root[sector_key][current_degree_key] = {}
-        add_sector(root[sector_key][current_degree_key], current_degree+1, target_degree, sector_orders, text)
+        add_sector(root[sector_key], current_degree+1, target_degree, sector_orders, text)
 
 make_hiearachy()
 
-def get_degree_text(root, current_degree, target_degree, texts):
-    print(current_degree, root.keys())
+def get_degree_text_recurssive(root, current_degree, target_degree, texts):
     if current_degree == target_degree:
         if("text" in root):
             texts.append(root["text"])
-            return
-    if(current_degree > target_degree):
         return
     for key in root:
         if(key != "text"):
-            get_degree_text(root[key], current_degree+1, target_degree, texts)
-            
-texts = []
-get_degree_text(root, 0, 5, texts)
-print(texts)
-# pretty_json = json.dumps(root, indent=2, ensure_ascii=False)
-# print(pretty_json)
+            get_degree_text_recurssive(root[key], current_degree+1, target_degree, texts)
 
-# with open(output_path, "w", encoding='utf-8') as file:
-#     file.write(pretty_json)
+def get_degree_text(degree):
+    texts = []
+    get_degree_text_recurssive(root, 0, degree, texts)
+    return texts
+
+texts = get_degree_text(6)
+print(texts)
+
+with open(output_path, "w", encoding='utf-8') as file:
+    for line in texts:
+        text = line.strip()
+        if(text != ""):
+            file.write(text + "\n")
