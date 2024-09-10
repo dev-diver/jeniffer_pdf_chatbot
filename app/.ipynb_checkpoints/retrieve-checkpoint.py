@@ -4,11 +4,12 @@ from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import FAISS
 from pathlib import Path
-from langchain.docstore.document import Document
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_teddynote import logging
 
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
@@ -21,23 +22,20 @@ logging.langsmith("jeniffer_RAG")
 current_dir = Path(__file__).parent
 project_dir = current_dir.parent
 data_dir = Path(project_dir, "data")
-text_file = Path(data_dir, "paragrah.txt")
+file_path = Path(data_dir, "jeniffer1-2.pdf")
 
-docs = []
+loader = PyMuPDFLoader(file_path)
+docs = loader.load()
+print("pdf load 완료")
 
-with open(text_file, "r", encoding="utf-8") as file:
-    for line in file:
-        if line.strip():  # 빈 줄 제외
-            docs.append(Document(page_content=line.strip()))
-print("문서 로드 완료")
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+split_documents = text_splitter.split_documents(docs)
+print("문서 분할 완료")
 
 embeddings = OllamaEmbeddings(model="EEVE:latest")
 
-vectorstore = FAISS.from_documents(documents=docs, embedding=embeddings)
+vectorstore = FAISS.from_documents(documents=split_documents, embedding=embeddings)
 print("벡터 저장소 생성 완료")
-
-vectorstore.save_local("fasis_paragraph")
-print("벡터 저장소 저장 완료")
 
 retriever = vectorstore.as_retriever()
 
@@ -54,6 +52,7 @@ Answer in Korean.
 
 #Answer:"""
 )
+
 
 llm = ChatOllama(model="EEVE:latest")
 
